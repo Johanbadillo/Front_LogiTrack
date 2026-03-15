@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogiTrack — Sistema de Gestión de Bodegas</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <!-- ══════════════════ LOGIN ══════════════════ -->
+    <div id="login-page">
+        <div class="login-bg">
+            <div class="login-grid"></div>
+        </div>
+        <div class="login-card">
+            <div class="login-logo">
+                <div class="login-logo-icon">⬡</div>
+                <div class="login-logo-text">Logi<span>Track</span></div>
+            </div>
+            <div class="login-title">Acceso al Sistema</div>
+            <p class="login-sub">Gestión integral de bodegas y movimientos de inventario</p>
+
+            <div class="form-group">
+                <label class="form-label">Usuario</label>
+                <input type="text" class="form-input" id="login-usuario" placeholder="juan_admin"
+                    autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <input type="password" class="form-input" id="login-pass" placeholder="••••••••"
+                    autocomplete="current-password">
+            </div>
+            <button class="btn-login" id="btn-login">INGRESAR AL SISTEMA</button>
+            <div class="login-error" id="login-error"></div>
+            <div class="login-footer">LogiTrack v1.0 — Sistema de Gestión de Bodegas</div>
+        </div>
+    </div>
+
+    <!-- ══════════════════ APP ══════════════════ -->
+    <div id="app">
+        <header class="header">
+            <a class="header-logo">
+                <div class="header-logo-icon">⬡</div>
+                <div class="header-logo-text">Logi<span>Track</span></div>
+            </a>
+            <nav class="header-nav" id="main-nav">
+                <button class="nav-btn active" onclick="showPage('bodegas')">Bodegas</button>
+                <button class="nav-btn" onclick="showPage('productos')">Productos</button>
+                <button class="nav-btn" onclick="showPage('empleados')">Empleados</button>
+                <button class="nav-btn" onclick="showPage('inventario')">Inventario</button>
+                <button class="nav-btn" onclick="showPage('movimientos')">Movimientos</button>
+                <button class="nav-btn" onclick="showPage('detalles')">Detalles Mov.</button>
+
+                <button class="nav-btn admin-only" id="nav-empleados" data-page="empleados"
+                    onclick="showPage('empleados')" style="display:none;">
+                    Empleados
+                </button>
+            </nav>
+            <div class="header-right">
+                <div class="header-user">Sesión: <span id="header-user-name">—</span></div>
+                <button class="btn-logout" onclick="logout()">Salir</button>
+            </div>
+        </header>
+
+        <main class="main">
+
+            <!-- ── BODEGAS ── -->
+            <div class="page active" id="page-bodegas">
+                <div class="stats-grid" id="stats-bodegas">
+                    <div class="stat-card">
+                        <div class="stat-card-label">Total Bodegas</div>
+                        <div class="stat-card-value" id="stat-total-bodegas">—</div>
+                        <div class="stat-card-icon">🏭</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Cap. Total</div>
+                        <div class="stat-card-value" id="stat-cap-total">—</div>
+                        <div class="stat-card-icon">📦</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Cap. Promedio</div>
+                        <div class="stat-card-value" id="stat-cap-prom">—</div>
+                        <div class="stat-card-icon">📊</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-label">Encargados</div>
+                        <div class="stat-card-value" id="stat-encargados">—</div>
+                        <div class="stat-card-icon">👤</div>
+                    </div>
+                </div>
+
+                <div class="page-header">
+                    <div class="page-title">Bodegas <span>Gestión de almacenes y puntos logísticos</span></div>
+                    <div class="page-count" id="count-bodegas">0 <small>registros</small></div>
+                </div>
+                <div class="actions-bar">
+                    <div class="search-box">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input type="text" placeholder="Buscar bodega..." id="search-bodegas"
+                            oninput="filterTable('bodegas')">
+                    </div>
+                    <button class="btn-primary" onclick="openModal('bodega')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Nueva Bodega
+                    </button>
+                </div>
+                <div class="table-wrap">
+                    <table id="table-bodegas">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Ubicación</th>
+                                <th>Capacidad</th>
+                                <th>Encargado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-bodegas">
+                            <tr class="loading-row">
+                                <td colspan="6">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── PRODUCTOS ── -->
+            <div class="page" id="page-productos">
+                <div class="page-header">
+                    <div class="page-title">Productos <span>Catálogo de productos del sistema</span></div>
+                    <div class="page-count" id="count-productos">0 <small>registros</small></div>
+                </div>
+                <div class="actions-bar">
+                    <div class="search-box">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input type="text" placeholder="Buscar producto..." id="search-productos"
+                            oninput="filterTable('productos')">
+                    </div>
+                    <button class="btn-primary" onclick="openModal('producto')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Nuevo Producto
+                    </button>
+                </div>
+                <div class="table-wrap">
+                    <table id="table-productos">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Tamaño</th>
+                                <th>Precio Mensual</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-productos">
+                            <tr class="loading-row">
+                                <td colspan="6">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── EMPLEADOS ── -->
+            <div class="page" id="page-empleados">
+                <div class="page-header">
+                    <div class="page-title">Empleados <span>Gestión del personal del sistema</span></div>
+                    <div class="page-count" id="count-empleados">0 <small>registros</small></div>
+                </div>
+                <div class="actions-bar">
+                    <div class="search-box">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input type="text" placeholder="Buscar empleado..." id="search-empleados"
+                            oninput="filterTable('empleados')">
+                    </div>
+                    <button class="btn-primary" onclick="openModal('empleado')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Nuevo Empleado
+                    </button>
+                </div>
+                <div class="table-wrap">
+                    <table id="table-empleados">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nombre</th>
+                                <th>Documento</th>
+                                <th>Correo</th>
+                                <th>Teléfono</th>
+                                <th>Rol</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-empleados">
+                            <tr class="loading-row">
+                                <td colspan="7">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── INVENTARIO ── -->
+            <div class="page" id="page-inventario">
+                <div class="page-header">
+                    <div class="page-title">Inventario <span>Stock de productos por bodega</span></div>
+                    <div class="page-count" id="count-inventario">0 <small>registros</small></div>
+                </div>
+                <div class="actions-bar">
+                    <div class="search-box">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input type="text" placeholder="Buscar en inventario..." id="search-inventario"
+                            oninput="filterTable('inventario')">
+                    </div>
+                    <button class="btn-primary" onclick="openModal('inventario')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Nuevo Registro
+                    </button>
+                </div>
+                <div class="table-wrap">
+                    <table id="table-inventario">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Bodega</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-inventario">
+                            <tr class="loading-row">
+                                <td colspan="5">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── MOVIMIENTOS ── -->
+            <div class="page" id="page-movimientos">
+                <div class="page-header">
+                    <div class="page-title">Movimientos <span>Registro de traslados entre bodegas</span></div>
+                    <div class="page-count" id="count-movimientos">0 <small>registros</small></div>
+                </div>
+                <div class="actions-bar">
+                    <div class="search-box">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input type="text" placeholder="Buscar movimiento..." id="search-movimientos"
+                            oninput="filterTable('movimientos')">
+                    </div>
+                    <button class="btn-primary" onclick="openModal('movimiento')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Nuevo Movimiento
+                    </button>
+                </div>
+                <div class="table-wrap">
+                    <table id="table-movimientos">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Fecha</th>
+                                <th>Tipo</th>
+                                <th>Empleado</th>
+                                <th>Origen</th>
+                                <th>Destino</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-movimientos">
+                            <tr class="loading-row">
+                                <td colspan="7">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ── DETALLES MOV ── -->
+            <div class="page" id="page-detalles">
+                <div class="page-header">
+                    <div class="page-title">Detalles de Movimientos <span>Productos incluidos en cada movimiento</span>
+                    </div>
+                    <div class="page-count" id="count-detalles">0 <small>registros</small></div>
+                </div>
+                <div class="actions-bar">
+                    <div class="search-box">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                            viewBox="0 0 24 24">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="m21 21-4.35-4.35" />
+                        </svg>
+                        <input type="text" placeholder="Buscar detalle..." id="search-detalles"
+                            oninput="filterTable('detalles')">
+                    </div>
+                    <button class="btn-primary" onclick="openModal('detalle')">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+                            viewBox="0 0 24 24">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        Nuevo Detalle
+                    </button>
+                </div>
+                <div class="table-wrap">
+                    <table id="table-detalles">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Movimiento</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbody-detalles">
+                            <tr class="loading-row">
+                                <td colspan="5">Cargando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- ══════════════════ MODALS ══════════════════ -->
+
+    <!-- BODEGA -->
+    <div class="modal-overlay" id="modal-bodega">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-bodega-title">Nueva Bodega</div>
+                <button class="modal-close" onclick="closeModal('bodega')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="bodega-id">
+                <div class="form-group">
+                    <label class="form-label">Nombre</label>
+                    <input type="text" class="form-input" id="bodega-nombre" onkeydown="if(event.key==='Enter') saveBodega()" placeholder="Ej: Bodega Central">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Ubicación</label>
+                    <input type="text" class="form-input" id="bodega-ubicacion" onkeydown="if(event.key==='Enter') saveBodega()"
+                        placeholder="Ej: Bogotá - Zona Industrial">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Capacidad</label>
+                        <input type="number" class="form-input" id="bodega-capacidad" onkeydown="if(event.key==='Enter') saveBodega()" placeholder="500" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ID Encargado</label>
+                        <input type="number" class="form-input" id="bodega-encargado" onkeydown="if(event.key==='Enter') saveBodega()" placeholder="3" min="1">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('bodega')">Cancelar</button>
+                <button class="btn-primary" onclick="saveBodega()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PRODUCTO -->
+    <div class="modal-overlay" id="modal-producto">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-producto-title">Nuevo Producto</div>
+                <button class="modal-close" onclick="closeModal('producto')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="producto-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-input" id="producto-nombre" onkeydown="if(event.key==='Enter') saveProducto()"
+                            placeholder="Ej: Caja de almacenamiento">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <input type="text" class="form-input" id="producto-categoria" onkeydown="if(event.key==='Enter') saveProducto()" placeholder="Ej: Logística">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Tamaño</label>
+                        <select class="form-select" id="producto-tamano">
+                            <option value="">Seleccionar...</option>
+                            <option value="PEQUENO">PEQUEÑO</option>
+                            <option value="MEDIANO">MEDIANO</option>
+                            <option value="GRANDE">GRANDE</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Precio Mensual</label>
+                        <input type="number" class="form-input" id="producto-precio" onkeydown="if(event.key==='Enter') saveProducto()" placeholder="120000" min="0"
+                            step="0.01">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('producto')">Cancelar</button>
+                <button class="btn-primary" onclick="saveProducto()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMPLEADO -->
+    <div class="modal-overlay" id="modal-empleado">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-empleado-title">Nuevo Empleado</div>
+                <button class="modal-close" onclick="closeModal('empleado')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="empleado-id">
+                <p style="font-size:12px;color:var(--gris);margin-bottom:16px;letter-spacing:0.3px;">Datos personales
+                </p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-input" id="empleado-nombre" onkeydown="if(event.key==='Enter') saveEmpleado()" placeholder="Juan Pérez">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Documento</label>
+                        <input type="text" class="form-input" id="empleado-documento" onkeydown="if(event.key==='Enter') saveEmpleado()" placeholder="1234567890">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Correo</label>
+                        <input type="email" class="form-input" id="empleado-correo" onkeydown="if(event.key==='Enter') saveEmpleado()" placeholder="juan@email.com">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input type="text" class="form-input" id="empleado-telefono" onkeydown="if(event.key==='Enter') saveEmpleado()" placeholder="3001234567">
+                    </div>
+                </div>
+                <p style="font-size:12px;color:var(--gris);margin-bottom:16px;margin-top:8px;letter-spacing:0.3px;">
+                    Credenciales</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Rol</label>
+                        <select class="form-select" id="empleado-rol">
+                            <option value="">Seleccionar...</option>
+                            <option value="ADMIN">ADMIN</option>
+                            <option value="EMPLEADO">EMPLEADO</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Usuario</label>
+                        <input type="text" class="form-input" id="empleado-usuario" onkeydown="if(event.key==='Enter') saveEmpleado()" placeholder="juan_admin">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contraseña</label>
+                    <input type="password" class="form-input" id="empleado-contrasena" onkeydown="if(event.key==='Enter') saveEmpleado()" placeholder="Min. 8 caracteres">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('empleado')">Cancelar</button>
+                <button class="btn-primary" onclick="saveEmpleado()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- INVENTARIO -->
+    <div class="modal-overlay" id="modal-inventario">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-inventario-title">Nuevo Registro de Inventario</div>
+                <button class="modal-close" onclick="closeModal('inventario')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="inventario-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">ID Bodega</label>
+                        <input type="number" class="form-input" id="inventario-bodega" onkeydown="if(event.key==='Enter') saveInventario()" placeholder="2" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ID Producto</label>
+                        <input type="number" class="form-input" id="inventario-producto" onkeydown="if(event.key==='Enter') saveInventario()" placeholder="10" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cantidad</label>
+                    <input type="number" class="form-input" id="inventario-cantidad" onkeydown="if(event.key==='Enter') saveInventario()" placeholder="150" min="1">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('inventario')">Cancelar</button>
+                <button class="btn-primary" onclick="saveInventario()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOVIMIENTO -->
+    <div class="modal-overlay" id="modal-movimiento">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-movimiento-title">Nuevo Movimiento</div>
+                <button class="modal-close" onclick="closeModal('movimiento')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="movimiento-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Fecha</label>
+                        <input type="date" class="form-input" id="movimiento-fecha">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tipo Movimiento</label>
+                        <select class="form-select" id="movimiento-tipo">
+                            <option value="">Seleccionar...</option>
+                            <option value="ENTRADA">ENTRADA</option>
+                            <option value="SALIDA">SALIDA</option>
+                            <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ID Empleado</label>
+                    <input type="number" class="form-input" id="movimiento-empleado" onkeydown="if(event.key==='Enter') saveMovimiento()" placeholder="4" min="1">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">ID Bodega Origen</label>
+                        <input type="number" class="form-input" id="movimiento-origen" onkeydown="if(event.key==='Enter') saveMovimiento()" placeholder="1" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ID Bodega Destino</label>
+                        <input type="number" class="form-input" id="movimiento-destino" onkeydown="if(event.key==='Enter') saveMovimiento()" placeholder="2" min="1">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('movimiento')">Cancelar</button>
+                <button class="btn-primary" onclick="saveMovimiento()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETALLE MOVIMIENTO -->
+    <div class="modal-overlay" id="modal-detalle">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="modal-detalle-title">Nuevo Detalle de Movimiento</div>
+                <button class="modal-close" onclick="closeModal('detalle')">×</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="detalle-id">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">ID Movimiento</label>
+                        <input type="number" class="form-input" id="detalle-movimiento" onkeydown="if(event.key==='Enter') saveDetalle()" placeholder="5" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">ID Producto</label>
+                        <input type="number" class="form-input" id="detalle-producto" onkeydown="if(event.key==='Enter') saveDetalle()" placeholder="12" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Cantidad (mín. 10)</label>
+                    <input type="number" class="form-input" id="detalle-cantidad" onkeydown="if(event.key==='Enter') saveDetalle()" placeholder="20" min="10">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('detalle')">Cancelar</button>
+                <button class="btn-primary" onclick="saveDetalle()">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM -->
+    <div class="modal-overlay confirm-modal" id="modal-confirm">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Confirmar eliminación</div>
+                <button class="modal-close" onclick="closeModal('confirm')">×</button>
+            </div>
+            <div class="modal-body">
+                <p class="confirm-msg" id="confirm-msg">¿Estás seguro de que deseas eliminar este registro? <strong>Esta
+                        acción no se puede deshacer.</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal('confirm')">Cancelar</button>
+                <button class="btn-danger" id="btn-confirm-delete">Eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast"></div>
+</body>
+<script src="./script.js"></script>
+
+</html>
