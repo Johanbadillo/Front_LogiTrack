@@ -1,7 +1,7 @@
 // ══════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════
-const API = 'http://localhost:8080';
+const API = 'http://http://10.79.213.217:8080/';
 let TOKEN = null;
 let CURRENT_USER = null;
 let CURRENT_ROL = null; // ← NUEVO: almacena el rol del usuario
